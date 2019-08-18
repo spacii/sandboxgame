@@ -1,9 +1,12 @@
 package com.company.Game;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ClientSocket implements Runnable {
@@ -41,7 +44,9 @@ public class ClientSocket implements Runnable {
     public void run() {
         try{
             socket = new Socket();
-            socket.connect(new InetSocketAddress(InetAddress.getLocalHost(), 8189), 2000);
+            socket.connect(new InetSocketAddress("25.41.250.41",8189), 2000);
+            //socket = new Socket();
+            //socket.connect(new InetSocketAddress(InetAddress.getLocalHost(), 8189), 2000);
 
             scanner = new Scanner(socket.getInputStream());
             scanner.useDelimiter("::");
@@ -73,6 +78,52 @@ public class ClientSocket implements Runnable {
                             int YYY = scanner.nextInt();
                             System.out.println(YYY);
                             gameManager.spawnOldFag(oldFagId, XXX, YYY);
+                            break;
+                        case "blockFromServerWorld" :
+/*
+                            try {
+                                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                                try {
+                                    Object object = objectInputStream.readObject();
+                                    gameManager.gameWorld = (Ga meWorld) object;
+                                } catch (ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            */
+
+                            try {
+                                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                                try {
+                                    Object object = objectInputStream.readObject();
+                                    ArrayList<Block> tempblocks = (ArrayList<Block>) object;
+                                    for(int i = 0; i < tempblocks.size(); i++){
+                                        gameManager.gameWorld.getWorldsBlocks().add(tempblocks.get(i));
+                                    }
+                                } catch (ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                                try {
+                                    Object object = objectInputStream.readObject();
+                                    ArrayList<Boolean> tempcollision = (ArrayList<Boolean>) object;
+                                    for(int i = 0; i < tempcollision.size(); i++){
+                                        gameManager.gameWorld.getWorldCollision().add(tempcollision.get(i));
+                                    }
+                                } catch (ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                             break;
                         default:
                             break;

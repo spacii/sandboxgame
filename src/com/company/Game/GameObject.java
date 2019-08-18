@@ -6,7 +6,7 @@ import com.company.engine.Renderer;
 import java.io.Serializable;
 
 public abstract class GameObject implements Serializable {
-    protected float posX, posY, width, height;
+    public float posX, posY, width, height;
 
     public GameObject(int posX, int posY, int width, int height){
         this.posX = posX;

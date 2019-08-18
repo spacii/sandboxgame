@@ -36,17 +36,34 @@ public class GameManager extends AbstractGame {
         gameStatus = 1;
     }
 
+    public void takeWorldFromServer(ClientSocket clientSocket){
+        clientSocket.getPrintWriter().println("giveMeWorld::");
+    }
+
     public void connectToServer(){
         clientSocket = new ClientSocket(this);
         clientSocket.getThread().start();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("Connected to server");
 
         gameWorld = new GameWorld();
         camera = new Camera();
         //escapeMenu = new EscapeMenu(this);
-        player = new Player(400,50,16,16, 100);
+        clientSocket.getPrintWriter().println("giveMeWorld::");
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         players = new ArrayList<>();
-        gameWorld.generateWorld();
+        clientSocket.getPrintWriter().println("giveMePlayersAndSendMeToPlayers::");
+        player = new Player(400,50,16,16, 100);
+
         gameStatus = 3;
     }
 

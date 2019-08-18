@@ -1,6 +1,9 @@
 package server;
 
+import com.company.Game.GameWorld;
+
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,7 +13,7 @@ import java.util.Scanner;
 public class Main2 {
 
     static private ArrayList<ServerConnection> connectionsList = new ArrayList<>();
-    static private GameWorldServer gameWorldServer;
+    static private GameWorld gameWorldServer;
 
 
     static void spawnNewInAll(int id){
@@ -30,36 +33,21 @@ public class Main2 {
         }
     }
 
-    /*
-    static void spawnOldInNew(int id){
-        for(int i = 0; i < connectionsList.size(); i++){
-            if(connectionsList.get(i).getConnectionId() == id){
-                for(int j = 0; j < connectionsList.size(); j++ ){
-                    if(connectionsList.get(j).getConnectionId() != id){
-                        connectionsList.get(i).getPrintWriter().println("oldFag::"+connectionsList.get(j).getConnectionId()+"::");
-                    }
-                }
-            }
-        }
-    }
-    */
-
     public static void main(String[] args) {
         try {
             ServerSocket serverSocket = new ServerSocket(8189);
             System.out.println("Server started");
-            gameWorldServer = new GameWorldServer();
+            gameWorldServer = new GameWorld();
             gameWorldServer.generateWorld();
-            System.out.println("World Generated!");
 
             while (true){
                 Socket socket = serverSocket.accept();
-                ServerConnection serverConnection = new ServerConnection(socket, connectionsList);
+                ServerConnection serverConnection = new ServerConnection(socket, connectionsList, gameWorldServer);
                 connectionsList.add(serverConnection);
                 connectionsList.get((connectionsList.size()-1)).getThread().start();
 
-                spawnNewInAll(connectionsList.get((connectionsList.size()-1)).getConnectionId());
-                spawnOldInNew(connectionsList.get((connectionsList.size()-1)).getConnectionId());
+                //spawnNewInAll(connectionsList.get((connectionsList.size()-1)).getConnectionId());
+                //spawnOldInNew(connectionsList.get((connectionsList.size()-1)).getConnectionId());
 
                 System.out.println("Player connected");
             }
@@ -78,11 +66,13 @@ class ServerConnection implements Runnable{
     private int connectionId;
     private int posX, posY;
     private ArrayList<ServerConnection> connectionsList;
+    private GameWorld gameWorldServer;
 
-    ServerConnection(Socket socket, ArrayList<ServerConnection> connectionsList){
+    ServerConnection(Socket socket, ArrayList<ServerConnection> connectionsList, GameWorld gameWorldServer){
         this.connectionsList = connectionsList;
         this.thread = new Thread(this);
         this.socket = socket;
+        this.gameWorldServer = gameWorldServer;
         this.connectionId = (int)(Math.random() * 1000 + 0);
         try{
             this.scanner = new Scanner(this.socket.getInputStream());
@@ -124,7 +114,53 @@ class ServerConnection implements Runnable{
         for(int i = 0; i < connectionsList.size(); i++){
             if(connectionsList.get(i).getConnectionId() != connectionId){
                 printWriter.println("otherPlayerCoords::"+ (int)connectionsList.get(i).getConnectionId() + "::" + (int)connectionsList.get(i).posX + "::" + (int)connectionsList.get(i).posY + "::");
-               // System.out.println("otherPlayerCoords::"+ connectionsList.get(i).getConnectionId() + "::" + connectionsList.get(i).posX + "::" + connectionsList.get(i).posY + "::");
+            }
+        }
+    }
+
+    public void giveWorldToPlayer(){
+        printWriter.println("blockFromServerWorld::");
+/*
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(gameWorldServer);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+*/
+
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(gameWorldServer.getWorldsBlocks());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(gameWorldServer.getWorldCollision());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    void spawnNewInAll(int id){
+        for(int i = 0; i < connectionsList.size(); i++){
+            if(connectionsList.get(i).getConnectionId() != id){
+                connectionsList.get(i).getPrintWriter().println("newConnected::" + id + "::");
+            }
+        }
+    }
+
+    void spawnOldInNew(int id){
+        for(int i = 0; i < connectionsList.size(); i++){
+            if(connectionsList.get(i).getConnectionId() != id){
+                connectionsList.get(connectionsList.size()-1).getPrintWriter().println("oldFag::" + connectionsList.get(i).getConnectionId() + "::"
+                        + connectionsList.get(i).getPosX() + "::" + connectionsList.get(i).getPosY() + "::");
             }
         }
     }
@@ -142,6 +178,14 @@ class ServerConnection implements Runnable{
                         break;
                     case "giveMeCoords" :
                         giveCoordsToPlayer();
+                        break;
+                    case "giveMeWorld" :
+                        giveWorldToPlayer();
+                        break;
+                    case "giveMePlayersAndSendMeToPlayers" :
+                        spawnNewInAll(connectionsList.get((connectionsList.size()-1)).getConnectionId());
+                        spawnOldInNew(connectionsList.get((connectionsList.size()-1)).getConnectionId());
+                        break;
                     default:
                         break;
                 }

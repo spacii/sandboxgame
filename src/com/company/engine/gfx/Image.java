@@ -3,8 +3,9 @@ package com.company.engine.gfx;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class Image {
+public class Image implements Serializable {
     private int w, h;
     private int[] p;
 

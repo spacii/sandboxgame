@@ -87,7 +87,7 @@ public class MainMenu {
                 ois2.close();
                 fis2.close();
                 gameManager.loadWorld();
-                gameManager.gameWorld.loadWorld(IDs, Xs, Ys);
+                //gameManager.gameWorld.loadWorld(IDs, Xs, Ys);
                 System.out.println("World Loaded");
                 gameManager.setGameStatus(1);
             }catch (Exception e){
